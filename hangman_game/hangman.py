@@ -2,6 +2,8 @@ import os
 import math
 import random
 import pygame
+import nltk
+from nltk.corpus import brown
 
 # OS Path Setting
 current_folder = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +39,8 @@ for i in range(7):
 
 # Game Variables
 hangman_status = 0
-words = ["IDE", "REPLIT", "PYTHON", "PYGAME"]
+news_text = brown.words(categories='news')
+words = [vocabulary.upper() for vocabulary in news_text if 2 < len(vocabulary) and len(vocabulary) < 6 and vocabulary.isalpha()]
 word = ""
 guessed = []
 
@@ -91,7 +94,8 @@ def display_message(message):
     pygame.time.delay(2000)
 
 def reset_status():
-    global guessed, letters
+    global guessed, letters, hangman_status
+    hangman_status = 0
     guessed = []
     for letter in letters:
         letter[3] = True
@@ -99,12 +103,14 @@ def reset_status():
 def main():
     global run, hangman_status, FPS, RADIUS, guessed, letters, word
     word = random.choice(words)
+    print(word)
     while run:
         clock.tick(FPS)
         draw()
-
+        text = TITLE_FONT.render(word, 1, BLACK)
+        win.blit(text, (WIDTH / 2 - text.get_width() / 2, 10))
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:   # Close window
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 m_x, m_y = pygame.mouse.get_pos()
@@ -119,7 +125,6 @@ def main():
                                 hangman_status += 1
 
         draw()
-
         won = True
         for letter in word:
             if letter not in guessed:
@@ -132,8 +137,9 @@ def main():
             break
 
         if hangman_status == 6:
-            display_message("You Lost!")
+            display_message("You Lost! The answer is " + word)
             reset_status()
+            won = True
             break
 
 while True:
@@ -142,3 +148,4 @@ while True:
     else:
         break
 pygame.quit()
+
